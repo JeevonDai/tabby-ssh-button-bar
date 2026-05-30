@@ -13,10 +13,7 @@ import { ButtonBarService } from './services/buttonBar.service'
 })
 export class ButtonBarModule {
     constructor(private buttonBarService: ButtonBarService) {
-        // Initialize the button bar on app start
-        setTimeout(() => {
-            this.buttonBarService.initialize()
-        }, 500)
+        this.buttonBarService.ensureReadyHook()
     }
 
     static forRoot() {
