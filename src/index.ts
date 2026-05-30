@@ -1,55 +1,18 @@
-import { NgModule } from '@angular/core'
+import { Injectable, NgModule } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
-import { ToolbarButtonProvider, ConfigProvider } from 'tabby-core'
+import {
+    ConfigProvider,
+    HotkeyProvider,
+    CommandProvider,
+    Command,
+    CommandContext,
+} from 'tabby-core'
 
 import { ButtonBarComponent } from './components/buttonBar.component'
-import { ButtonBarService } from './services/buttonBar.service'
+import { ButtonBarService, BUTTON_BAR_TOGGLE_HOTKEY_ID } from './services/buttonBar.service'
 
-@NgModule({
-    imports: [CommonModule, FormsModule],
-    declarations: [ButtonBarComponent],
-    exports: [ButtonBarComponent],
-})
-export class ButtonBarModule {
-    constructor(private buttonBarService: ButtonBarService) {
-        this.buttonBarService.ensureReadyHook()
-    }
-
-    static forRoot() {
-        return {
-            ngModule: ButtonBarModule,
-            providers: [ButtonBarService],
-        }
-    }
-}
-
-/**
- * Toolbar button provider for toggling the button bar
- */
-export class ButtonBarToolbarButtonProvider extends ToolbarButtonProvider {
-    constructor(private buttonBarService: ButtonBarService) {
-        super()
-    }
-
-    provide() {
-        return [
-            {
-                icon: 'fas fa-keyboard',
-                title: 'Toggle Button Bar',
-                touchBarTitle: 'Button Bar',
-                weight: -10,
-                click: () => {
-                    this.buttonBarService.toggle()
-                },
-            },
-        ]
-    }
-}
-
-/**
- * Config provider for default plugin settings
- */
+@Injectable()
 export class ButtonBarConfigProvider extends ConfigProvider {
     defaults = {
         pluginConfig: {
@@ -59,14 +22,60 @@ export class ButtonBarConfigProvider extends ConfigProvider {
                 activeListId: '',
             },
         },
+        hotkeys: {
+            [BUTTON_BAR_TOGGLE_HOTKEY_ID]: ['Ctrl-B'],
+        },
     }
 }
 
-export default [
-    ButtonBarModule.forRoot(),
-    { provide: ToolbarButtonProvider, useClass: ButtonBarToolbarButtonProvider, multi: true },
-    { provide: ConfigProvider, useClass: ButtonBarConfigProvider, multi: true },
-]
+@Injectable()
+export class ButtonBarHotkeyProvider extends HotkeyProvider {
+    async provide() {
+        return [
+            {
+                id: BUTTON_BAR_TOGGLE_HOTKEY_ID,
+                name: 'Toggle button bar',
+            },
+        ]
+    }
+}
+
+@Injectable()
+export class ButtonBarCommandProvider extends CommandProvider {
+    constructor(private buttonBarService: ButtonBarService) {
+        super()
+    }
+
+    async provide(_context: CommandContext): Promise<Command[]> {
+        return [
+            {
+                id: BUTTON_BAR_TOGGLE_HOTKEY_ID,
+                label: 'Toggle button bar',
+                sublabel: 'Show or hide the SSH button bar (Ctrl+B)',
+                run: async () => {
+                    this.buttonBarService.toggle()
+                },
+            },
+        ]
+    }
+}
+
+@NgModule({
+    imports: [CommonModule, FormsModule],
+    declarations: [ButtonBarComponent],
+    exports: [ButtonBarComponent],
+    providers: [
+        ButtonBarService,
+        { provide: ConfigProvider, useClass: ButtonBarConfigProvider, multi: true },
+        { provide: HotkeyProvider, useClass: ButtonBarHotkeyProvider, multi: true },
+        { provide: CommandProvider, useClass: ButtonBarCommandProvider, multi: true },
+    ],
+})
+export default class ButtonBarPluginModule {
+    constructor(private buttonBarService: ButtonBarService) {
+        this.buttonBarService.ensureReadyHook()
+    }
+}
 
 export { ButtonBarComponent } from './components/buttonBar.component'
-export { ButtonBarService } from './services/buttonBar.service'
+export { ButtonBarService, BUTTON_BAR_TOGGLE_HOTKEY_ID } from './services/buttonBar.service'

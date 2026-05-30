@@ -1,13 +1,16 @@
 import { Injectable, ComponentRef, Injector, ApplicationRef, createComponent, EnvironmentInjector } from '@angular/core'
-import { AppService, ConfigService } from 'tabby-core'
+import { AppService, ConfigService, HotkeysService } from 'tabby-core'
 import { ButtonBarComponent } from '../components/buttonBar.component'
+import { getButtonBarConfig } from '../pluginConfig'
+
+export const BUTTON_BAR_TOGGLE_HOTKEY_ID = 'button-bar-toggle'
 
 const STYLE_ID = 'button-bar-style'
 const BAR_ID = 'button-bar-wrapper'
 const BODY_CLASS = 'tabby-button-bar-enabled'
 const DEFAULT_BAR_HEIGHT = 40
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ButtonBarService {
     private buttonBarRef: ComponentRef<ButtonBarComponent> | null = null
     private wrapperElement: HTMLElement | null = null
@@ -15,12 +18,14 @@ export class ButtonBarService {
     private resizeObserver: ResizeObserver | null = null
     private layoutFrame = 0
     private readySubscribed = false
+    private hotkeysSubscribed = false
 
     constructor(
         private injector: Injector,
         private appRef: ApplicationRef,
         private config: ConfigService,
         private app: AppService,
+        private hotkeys: HotkeysService,
     ) {}
 
     get isVisible(): boolean {
@@ -33,12 +38,27 @@ export class ButtonBarService {
             return
         }
         this.readySubscribed = true
-        this.app.ready$.subscribe(() => this.initialize())
+        this.app.ready$.subscribe(() => {
+            this.setupHotkeys()
+            this.initialize()
+        })
+    }
+
+    private setupHotkeys(): void {
+        if (this.hotkeysSubscribed) {
+            return
+        }
+        this.hotkeysSubscribed = true
+        this.hotkeys.hotkey$.subscribe(id => {
+            if (id === BUTTON_BAR_TOGGLE_HOTKEY_ID) {
+                this.toggle()
+            }
+        })
     }
 
     initialize(): void {
-        const pluginConfig = this.config.store.pluginConfig?.['button-bar'] || {}
-        const savedVisible = pluginConfig.barVisible !== false
+        const buttonBarConfig = getButtonBarConfig(this.config)
+        const savedVisible = buttonBarConfig.barVisible !== false
 
         if (savedVisible) {
             this.show()
@@ -187,12 +207,7 @@ export class ButtonBarService {
     }
 
     private saveVisibility(): void {
-        const pluginConfig = this.config.store.pluginConfig || {}
-        if (!pluginConfig['button-bar']) {
-            pluginConfig['button-bar'] = {}
-        }
-        pluginConfig['button-bar'].barVisible = this.visible
-        this.config.store.pluginConfig = pluginConfig
+        getButtonBarConfig(this.config).barVisible = this.visible
         this.config.save()
     }
 

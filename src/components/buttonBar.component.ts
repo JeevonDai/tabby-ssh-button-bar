@@ -14,6 +14,7 @@ import path from 'node:path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { Subject } from 'rxjs'
 import { takeUntil } from 'rxjs/operators'
+import { getButtonBarConfig } from '../pluginConfig'
 
 export interface ButtonCommand {
     id: string
@@ -795,13 +796,9 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
     }
 
     saveLists(): void {
-        const pluginConfig = this.config.store.pluginConfig || {}
-        this.config.store.pluginConfig = pluginConfig
-        pluginConfig['button-bar'] = {
-            ...(pluginConfig['button-bar'] || {}),
-            lists: this.lists,
-            activeListId: this.activeListId,
-        }
+        const buttonBarConfig = getButtonBarConfig(this.config)
+        buttonBarConfig.lists = this.lists
+        buttonBarConfig.activeListId = this.activeListId
         this.skipNextConfigReload = true
         this.saveStorageLists()
         this.config.save()
