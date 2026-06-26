@@ -8,6 +8,7 @@ import {
     Platform,
     PlatformService,
     SplitTabComponent,
+    TranslateService,
 } from 'tabby-core'
 import { BaseTerminalTabComponent } from 'tabby-terminal'
 import path from 'node:path'
@@ -44,13 +45,13 @@ interface ButtonBarStorage {
             <div class="button-bar-main">
                 <div class="list-selector">
                     <button class="list-toggle" #listToggleButton (click)="toggleListMenu($event)">
-                        <span>{{ activeList?.name || 'Lists' }}</span>
+                        <span>{{ activeList?.name || ('Lists' | translate) }}</span>
                         <i class="fas fa-caret-down"></i>
                     </button>
                     <div class="list-menu" #listMenu *ngIf="listMenuVisible" [ngStyle]="listMenuStyles">
                         <div class="list-menu-header">
-                            <span>Lists</span>
-                            <button class="btn-link btn-sm" (click)="createList($event)" title="New list">+</button>
+                            <span translate>Lists</span>
+                            <button class="btn-link btn-sm" (click)="createList($event)" [title]="'New list' | translate">+</button>
                         </div>
                         <ng-container *ngFor="let list of lists; let i = index">
                             <div class="list-menu-item" [class.active]="list.id === activeListId">
@@ -58,15 +59,15 @@ interface ButtonBarStorage {
                                     {{ list.name }}
                                 </button>
                                 <div class="list-item-actions">
-                                    <button title="Rename" (click)="renameList($event, list)">✎</button>
-                                    <button title="Duplicate" (click)="duplicateList($event, list)">⧉</button>
-                                    <button title="Delete" (click)="deleteList($event, list)" [disabled]="lists.length === 1">🗑</button>
+                                    <button [title]="'Rename' | translate" (click)="renameList($event, list)">✎</button>
+                                    <button [title]="'Duplicate' | translate" (click)="duplicateList($event, list)">⧉</button>
+                                    <button [title]="'Delete' | translate" (click)="deleteList($event, list)" [disabled]="lists.length === 1">🗑</button>
                                 </div>
                             </div>
                         </ng-container>
                         <div class="list-menu-footer">
                             <button class="btn-link btn-sm" (click)="openImportExportModal($event)">
-                                <i class="fas fa-cog"></i> Import/Export
+                                <i class="fas fa-cog"></i> <span translate>Import/Export</span>
                             </button>
                         </div>
                     </div>
@@ -92,12 +93,12 @@ interface ButtonBarStorage {
                             <span>{{ getButtonLabel(btn) }}</span>
                         </button>
                     </ng-container>
-                    <button class="cmd-btn cmd-btn-add" (click)="openAddModal()" title="Add command">
+                    <button class="cmd-btn cmd-btn-add" (click)="openAddModal()" [title]="'Add command' | translate">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
                 <div class="button-bar-actions">
-                    <button class="action-btn" (click)="toggleCollapse()" title="Hide button bar">
+                    <button class="action-btn" (click)="toggleCollapse()" [title]="'Hide button bar' | translate">
                         <i class="fas fa-chevron-down"></i>
                     </button>
                 </div>
@@ -108,26 +109,28 @@ interface ButtonBarStorage {
         <div class="modal-backdrop" *ngIf="modalVisible" (click)="closeModal()"></div>
         <div class="command-modal" *ngIf="modalVisible">
             <div class="modal-header">
-                <h5>{{ editingButton ? 'Edit Command' : 'Add Command' }}</h5>
+                <h5>{{ (editingButton ? 'Edit Command' : 'Add Command') | translate }}</h5>
                 <button class="btn btn-link" (click)="closeModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="form-group mb-3">
-                    <label class="form-label">Label{{ buttonBarSettings.useCommandAsLabel ? ' (optional)' : '' }}</label>
-                    <input type="text" class="form-control" [(ngModel)]="modalData.label" [placeholder]="buttonBarSettings.useCommandAsLabel ? 'Optional, command is used by default' : 'e.g., List Files'">
+                    <label class="form-label">
+                        <span translate>Label</span><span *ngIf="buttonBarSettings.useCommandAsLabel" translate> (optional)</span>
+                    </label>
+                    <input type="text" class="form-control" [(ngModel)]="modalData.label" [placeholder]="(buttonBarSettings.useCommandAsLabel ? 'Optional, command is used by default' : 'e.g., List Files') | translate">
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Command</label>
-                    <input type="text" class="form-control" [(ngModel)]="modalData.command" placeholder="e.g., ls -la">
+                    <label class="form-label" translate>Command</label>
+                    <input type="text" class="form-control" [(ngModel)]="modalData.command" [placeholder]="'e.g., ls -la' | translate">
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Icon (FontAwesome name, optional)</label>
-                    <input type="text" class="form-control" [(ngModel)]="modalData.icon" placeholder="e.g., folder, server, code">
+                    <label class="form-label" translate>Icon (FontAwesome name, optional)</label>
+                    <input type="text" class="form-control" [(ngModel)]="modalData.icon" [placeholder]="'e.g., folder, server, code' | translate">
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Color (optional)</label>
+                    <label class="form-label" translate>Color (optional)</label>
                     <div class="color-picker">
                         <button *ngFor="let color of presetColors"
                                 class="color-option"
@@ -139,18 +142,18 @@ interface ButtonBarStorage {
                     </div>
                 </div>
                 <div class="form-group mb-3">
-                    <label class="form-label">Tooltip (optional)</label>
-                    <input type="text" class="form-control" [(ngModel)]="modalData.tooltip" placeholder="Description shown on hover">
+                    <label class="form-label" translate>Tooltip (optional)</label>
+                    <input type="text" class="form-control" [(ngModel)]="modalData.tooltip" [placeholder]="'Description shown on hover' | translate">
                 </div>
                 <div class="form-check mb-3">
                     <input type="checkbox" class="form-check-input" id="sendEnter" [(ngModel)]="modalData.sendEnter">
-                    <label class="form-check-label" for="sendEnter">Send Enter after command</label>
+                    <label class="form-check-label" for="sendEnter" translate>Send Enter after command</label>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+                <button class="btn btn-secondary" (click)="closeModal()" translate>Cancel</button>
                 <button class="btn btn-primary" (click)="saveButton()" [disabled]="!canSaveButton">
-                    {{ editingButton ? 'Save' : 'Add' }}
+                    {{ (editingButton ? 'Save' : 'Add') | translate }}
                 </button>
             </div>
         </div>
@@ -162,16 +165,16 @@ interface ButtonBarStorage {
              [style.top.px]="contextMenuPosition.y">
             <div class="context-menu-item" (click)="contextMenuEdit()">
                 <i class="fas fa-fw fa-edit"></i>
-                <span>Edit</span>
+                <span translate>Edit</span>
             </div>
             <div class="context-menu-item" (click)="contextMenuDuplicate()">
                 <i class="fas fa-fw fa-copy"></i>
-                <span>Duplicate</span>
+                <span translate>Duplicate</span>
             </div>
             <div class="context-menu-divider"></div>
             <div class="context-menu-item context-menu-item-danger" (click)="contextMenuDelete()">
                 <i class="fas fa-fw fa-trash-alt"></i>
-                <span>Delete</span>
+                <span translate>Delete</span>
             </div>
         </div>
 
@@ -179,17 +182,17 @@ interface ButtonBarStorage {
         <div class="modal-backdrop" *ngIf="importExportModalVisible" (click)="closeImportExportModal()"></div>
         <div class="command-modal" *ngIf="importExportModalVisible">
             <div class="modal-header">
-                <h5>Import / Export Lists</h5>
+                <h5 translate>Import / Export Lists</h5>
                 <button class="btn btn-link" (click)="closeImportExportModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <textarea class="form-control" rows="10" [(ngModel)]="listsJson" placeholder="Paste JSON here to import, or click Export"></textarea>
+                <textarea class="form-control" rows="10" [(ngModel)]="listsJson" [placeholder]="'Paste JSON here to import, or click Export' | translate"></textarea>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" (click)="exportLists()">Export</button>
-                <button class="btn btn-primary" (click)="importLists()">Import</button>
+                <button class="btn btn-secondary" (click)="exportLists()" translate>Export</button>
+                <button class="btn btn-primary" (click)="importLists()" translate>Import</button>
             </div>
         </div>
 
@@ -197,21 +200,21 @@ interface ButtonBarStorage {
         <div class="modal-backdrop" *ngIf="listNameModalVisible" (click)="closeListNameModal()"></div>
         <div class="command-modal" *ngIf="listNameModalVisible">
             <div class="modal-header">
-                <h5>{{ editingList ? 'Rename List' : 'New List' }}</h5>
+                <h5>{{ (editingList ? 'Rename List' : 'New List') | translate }}</h5>
                 <button class="btn btn-link" (click)="closeListNameModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label class="form-label">List Name</label>
-                    <input type="text" class="form-control" [(ngModel)]="listNameInput" placeholder="e.g., Cisco, Huawei" (keyup.enter)="saveListName()">
+                    <label class="form-label" translate>List Name</label>
+                    <input type="text" class="form-control" [(ngModel)]="listNameInput" [placeholder]="'e.g., Cisco, Huawei' | translate" (keyup.enter)="saveListName()">
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" (click)="closeListNameModal()">Cancel</button>
+                <button class="btn btn-secondary" (click)="closeListNameModal()" translate>Cancel</button>
                 <button class="btn btn-primary" (click)="saveListName()" [disabled]="!listNameInput?.trim()">
-                    {{ editingList ? 'Save' : 'Create' }}
+                    {{ (editingList ? 'Save' : 'Create') | translate }}
                 </button>
             </div>
         </div>
@@ -220,18 +223,18 @@ interface ButtonBarStorage {
         <div class="modal-backdrop" *ngIf="deleteConfirmVisible" (click)="closeDeleteConfirm()"></div>
         <div class="command-modal" *ngIf="deleteConfirmVisible">
             <div class="modal-header">
-                <h5>Delete List</h5>
+                <h5 translate>Delete List</h5>
                 <button class="btn btn-link" (click)="closeDeleteConfirm()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete "<strong>{{ listToDelete?.name }}</strong>"?</p>
-                <p class="text-muted">This will remove all commands in this list.</p>
+                <p translate="Are you sure you want to delete &quot;{name}&quot;?" [translateParams]="{name: listToDelete?.name || ''}"></p>
+                <p class="text-muted" translate>This will remove all commands in this list.</p>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" (click)="closeDeleteConfirm()">Cancel</button>
-                <button class="btn btn-danger" (click)="confirmDeleteList()">Delete</button>
+                <button class="btn btn-secondary" (click)="closeDeleteConfirm()" translate>Cancel</button>
+                <button class="btn btn-danger" (click)="confirmDeleteList()" translate>Delete</button>
             </div>
         </div>
     `,
@@ -703,6 +706,7 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
         private config: ConfigService,
         private hostApp: HostAppService,
         private platformService: PlatformService,
+        private translate: TranslateService,
     ) {
         super()
         this.isMacOS = this.hostApp.platform === Platform.macOS
@@ -853,7 +857,7 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
     private createDefaultList(): ButtonList {
         return {
             id: this.generateId(),
-            name: 'List 1',
+            name: this.translate.instant('List {number}', { number: 1 }),
             buttons: [],
         }
     }
@@ -1096,7 +1100,7 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
         event?.preventDefault()
         this.closeListMenu()
         this.editingList = null
-        this.listNameInput = `List ${this.lists.length + 1}`
+        this.listNameInput = this.translate.instant('List {number}', { number: this.lists.length + 1 })
         this.listNameModalVisible = true
     }
 
@@ -1115,7 +1119,7 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
         this.closeListMenu()
         const copy: ButtonList = {
             id: this.generateId(),
-            name: `${list.name} (copy)`,
+            name: this.translate.instant('{name} (copy)', { name: list.name }),
             buttons: list.buttons.map(btn => ({ ...btn, id: this.generateId() })),
         }
         this.lists.push(copy)
@@ -1278,7 +1282,9 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
             const newButton: ButtonCommand = {
                 ...this.contextMenuButton,
                 id: this.generateId(),
-                label: this.contextMenuButton.label + ' (copy)',
+                label: this.translate.instant('{name} (copy)', {
+                    name: this.contextMenuButton.label || this.contextMenuButton.command,
+                }),
             }
             this.activeList.buttons.push(newButton)
             this.saveLists()

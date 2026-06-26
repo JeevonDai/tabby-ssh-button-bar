@@ -12,12 +12,12 @@ interface ButtonBarStorage {
 
 @Component({
     template: `
-        <h3>Button Bar</h3>
+        <h3 translate>Button Bar</h3>
 
         <div class="form-line">
             <div class="header">
-                <div class="title">Use command as label</div>
-                <div class="description">Buttons display their command text by default.</div>
+                <div class="title" translate>Use command as label</div>
+                <div class="description" translate>Buttons display their command text by default.</div>
             </div>
             <input
                 type="checkbox"
@@ -29,8 +29,8 @@ interface ButtonBarStorage {
 
         <div class="form-line">
             <div class="header">
-                <div class="title">Command label max length</div>
-                <div class="description">Long command labels are shortened in the button bar.</div>
+                <div class="title" translate>Command label max length</div>
+                <div class="description" translate>Long command labels are shortened in the button bar.</div>
             </div>
             <input
                 class="form-control"
@@ -44,8 +44,8 @@ interface ButtonBarStorage {
 
         <div class="form-line">
             <div class="header">
-                <div class="title">Default Send Enter after command</div>
-                <div class="description">New commands and commands without an explicit value send Enter automatically.</div>
+                <div class="title" translate>Default Send Enter after command</div>
+                <div class="description" translate>New commands and commands without an explicit value send Enter automatically.</div>
             </div>
             <input
                 type="checkbox"
@@ -55,12 +55,12 @@ interface ButtonBarStorage {
             >
         </div>
 
-        <h4>Commands</h4>
+        <h4 translate>Commands</h4>
 
         <div class="form-line">
             <div class="header">
-                <div class="title">List</div>
-                <div class="description">Choose the button list to edit.</div>
+                <div class="title" translate>List</div>
+                <div class="description" translate>Choose the button list to edit.</div>
             </div>
             <select
                 class="form-control"
@@ -76,27 +76,29 @@ interface ButtonBarStorage {
             <table class="table table-sm align-middle">
                 <thead>
                     <tr>
-                        <th style="width: 86px;">Order</th>
-                        <th>Label{{ buttonBarConfig.useCommandAsLabel ? ' (optional)' : '' }}</th>
-                        <th>Command</th>
-                        <th style="width: 110px;">Send Enter</th>
-                        <th style="width: 100px;">Icon</th>
-                        <th style="width: 92px;">Color</th>
-                        <th>Tooltip</th>
+                        <th style="width: 86px;" translate>Order</th>
+                        <th>
+                            <span translate>Label</span><span *ngIf="buttonBarConfig.useCommandAsLabel" translate> (optional)</span>
+                        </th>
+                        <th translate>Command</th>
+                        <th style="width: 110px;" translate>Send Enter</th>
+                        <th style="width: 100px;" translate>Icon</th>
+                        <th style="width: 92px;" translate>Color</th>
+                        <th translate>Tooltip</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr *ngFor="let button of activeList.buttons; let i = index">
                         <td>
-                            <button class="btn btn-sm btn-secondary me-1" (click)="moveButton(i, -1)" [disabled]="i === 0" title="Move up">
+                            <button class="btn btn-sm btn-secondary me-1" (click)="moveButton(i, -1)" [disabled]="i === 0" [title]="'Move up' | translate">
                                 <i class="fas fa-arrow-up"></i>
                             </button>
-                            <button class="btn btn-sm btn-secondary" (click)="moveButton(i, 1)" [disabled]="i === activeList.buttons.length - 1" title="Move down">
+                            <button class="btn btn-sm btn-secondary" (click)="moveButton(i, 1)" [disabled]="i === activeList.buttons.length - 1" [title]="'Move down' | translate">
                                 <i class="fas fa-arrow-down"></i>
                             </button>
                         </td>
                         <td>
-                            <input class="form-control form-control-sm" [(ngModel)]="button.label" (ngModelChange)="saveLists()" [placeholder]="buttonBarConfig.useCommandAsLabel ? 'Optional' : 'Label'">
+                            <input class="form-control form-control-sm" [(ngModel)]="button.label" (ngModelChange)="saveLists()" [placeholder]="(buttonBarConfig.useCommandAsLabel ? 'Optional' : 'Label') | translate">
                         </td>
                         <td>
                             <input class="form-control form-control-sm" [(ngModel)]="button.command" (ngModelChange)="saveLists()">
@@ -119,7 +121,7 @@ interface ButtonBarStorage {
         </div>
 
         <ng-template #noCommands>
-            <p class="text-muted">No command list found.</p>
+            <p class="text-muted" translate>No command list found.</p>
         </ng-template>
     `,
 })

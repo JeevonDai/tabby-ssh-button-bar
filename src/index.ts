@@ -1,18 +1,20 @@
 import { Injectable, NgModule } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
-import {
+import TabbyCorePlugin, {
     ConfigProvider,
     HotkeyProvider,
     CommandProvider,
     Command,
     CommandContext,
+    TranslateService,
 } from 'tabby-core'
 import { SettingsTabProvider } from 'tabby-settings'
 
 import { ButtonBarComponent } from './components/buttonBar.component'
 import { ButtonBarSettingsTabComponent } from './components/buttonBarSettingsTab.component'
 import { ButtonBarService, BUTTON_BAR_TOGGLE_HOTKEY_ID } from './services/buttonBar.service'
+import { ButtonBarLocaleService } from './services/buttonBarLocale.service'
 import { ButtonBarSettingsTabProvider } from './settings'
 
 @Injectable()
@@ -36,11 +38,15 @@ export class ButtonBarConfigProvider extends ConfigProvider {
 
 @Injectable()
 export class ButtonBarHotkeyProvider extends HotkeyProvider {
+    constructor(private translate: TranslateService) {
+        super()
+    }
+
     async provide() {
         return [
             {
                 id: BUTTON_BAR_TOGGLE_HOTKEY_ID,
-                name: 'Toggle button bar',
+                name: this.translate.instant('Toggle button bar'),
             },
         ]
     }
@@ -48,7 +54,10 @@ export class ButtonBarHotkeyProvider extends HotkeyProvider {
 
 @Injectable()
 export class ButtonBarCommandProvider extends CommandProvider {
-    constructor(private buttonBarService: ButtonBarService) {
+    constructor(
+        private buttonBarService: ButtonBarService,
+        private translate: TranslateService,
+    ) {
         super()
     }
 
@@ -56,8 +65,8 @@ export class ButtonBarCommandProvider extends CommandProvider {
         return [
             {
                 id: BUTTON_BAR_TOGGLE_HOTKEY_ID,
-                label: 'Toggle button bar',
-                sublabel: 'Show or hide the SSH button bar (Ctrl+B)',
+                label: this.translate.instant('Toggle button bar'),
+                sublabel: this.translate.instant('Show or hide the SSH button bar (Ctrl+B)'),
                 run: async () => {
                     this.buttonBarService.toggle()
                 },
@@ -67,11 +76,12 @@ export class ButtonBarCommandProvider extends CommandProvider {
 }
 
 @NgModule({
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, TabbyCorePlugin],
     declarations: [ButtonBarComponent, ButtonBarSettingsTabComponent],
     exports: [ButtonBarComponent],
     providers: [
         ButtonBarService,
+        ButtonBarLocaleService,
         { provide: ConfigProvider, useClass: ButtonBarConfigProvider, multi: true },
         { provide: HotkeyProvider, useClass: ButtonBarHotkeyProvider, multi: true },
         { provide: CommandProvider, useClass: ButtonBarCommandProvider, multi: true },
@@ -79,7 +89,10 @@ export class ButtonBarCommandProvider extends CommandProvider {
     ],
 })
 export default class ButtonBarPluginModule {
-    constructor(private buttonBarService: ButtonBarService) {
+    constructor(
+        private buttonBarService: ButtonBarService,
+        _buttonBarLocale: ButtonBarLocaleService,
+    ) {
         this.buttonBarService.ensureReadyHook()
     }
 }
