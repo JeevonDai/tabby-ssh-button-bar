@@ -18,6 +18,8 @@
   "scripts": {
     "build": "webpack --mode production",
     "watch": "webpack --mode development --watch",
+    "deploy": "node scripts/deploy.js",
+    "build:deploy": "node scripts/deploy.js --build",
     "prepublishOnly": "npm run build"
   },
   "author": "Tayronroch",
