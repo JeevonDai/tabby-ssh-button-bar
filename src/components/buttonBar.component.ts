@@ -75,12 +75,18 @@ interface ButtonBarStorage {
                     <ng-container *ngIf="activeList">
                         <button *ngFor="let btn of activeList.buttons"
                                 class="cmd-btn"
+                                draggable="true"
                                 tabindex="-1"
+                                [class.dragging]="draggingButtonId === btn.id"
+                                [class.drag-over]="dragOverButtonId === btn.id"
                                 [style.--btn-color]="btn.color || '#4a4a4a'"
                                 [title]="btn.tooltip || btn.command"
                                 (click)="executeCommand(btn, $event)"
-                                (mousedown)="$event.preventDefault()"
-                                (mouseup)="$event.preventDefault()"
+                                (dragstart)="onButtonDragStart($event, btn)"
+                                (dragover)="onButtonDragOver($event, btn)"
+                                (dragleave)="onButtonDragLeave(btn)"
+                                (drop)="onButtonDrop($event, btn)"
+                                (dragend)="onButtonDragEnd()"
                                 (contextmenu)="onButtonContextMenu($event, btn)">
                             <i *ngIf="btn.icon" class="fas" [ngClass]="'fa-' + btn.icon"></i>
                             <span>{{ getButtonLabel(btn) }}</span>
@@ -415,6 +421,7 @@ interface ButtonBarStorage {
             transition: all 0.15s ease;
             white-space: nowrap;
             height: 26px;
+            user-select: none;
         }
 
         .cmd-btn i {
@@ -424,6 +431,16 @@ interface ButtonBarStorage {
         .cmd-btn:hover {
             filter: brightness(1.15);
             border-color: rgba(255,255,255,0.2);
+        }
+
+        .cmd-btn.dragging {
+            opacity: 0.45;
+            cursor: grabbing;
+        }
+
+        .cmd-btn.drag-over {
+            outline: 2px solid var(--bs-primary, #0d6efd);
+            outline-offset: 1px;
         }
 
         .cmd-btn-add {
@@ -643,6 +660,11 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
     // Delete confirmation modal
     deleteConfirmVisible = false
     listToDelete: ButtonList | null = null
+
+    // Button drag state
+    draggingButtonId: string | null = null
+    dragOverButtonId: string | null = null
+    private suppressNextClick = false
 
     @ViewChild('listToggleButton', { read: ElementRef }) private listToggleButton?: ElementRef<HTMLElement>
     @ViewChild('listMenu', { read: ElementRef }) private listMenuElement?: ElementRef<HTMLElement>
@@ -901,6 +923,10 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
     executeCommand(btn: ButtonCommand, event?: MouseEvent): void {
         event?.preventDefault()
         event?.stopPropagation()
+        if (this.suppressNextClick) {
+            this.suppressNextClick = false
+            return
+        }
         const terminal = this.getActiveTerminalTab()
         const terminalAny = terminal as BaseTerminalTabComponent<any> & { inputProcessor?: { writeText?: (text: string) => void } }
 
@@ -929,6 +955,74 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
             }
             setTimeout(focusTerminal, 20)
         }, 10)
+    }
+
+    onButtonDragStart(event: DragEvent, btn: ButtonCommand): void {
+        this.draggingButtonId = btn.id
+        this.dragOverButtonId = null
+        this.suppressNextClick = true
+        event.dataTransfer?.setData('text/plain', btn.id)
+        if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move'
+        }
+    }
+
+    onButtonDragOver(event: DragEvent, btn: ButtonCommand): void {
+        if (!this.draggingButtonId || this.draggingButtonId === btn.id) {
+            return
+        }
+        event.preventDefault()
+        if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = 'move'
+        }
+        this.dragOverButtonId = btn.id
+    }
+
+    onButtonDragLeave(btn: ButtonCommand): void {
+        if (this.dragOverButtonId === btn.id) {
+            this.dragOverButtonId = null
+        }
+    }
+
+    onButtonDrop(event: DragEvent, targetButton: ButtonCommand): void {
+        event.preventDefault()
+        event.stopPropagation()
+
+        const draggedId = this.draggingButtonId || event.dataTransfer?.getData('text/plain')
+        const list = this.activeList
+        if (!draggedId || !list || draggedId === targetButton.id) {
+            this.onButtonDragEnd()
+            return
+        }
+
+        const draggedIndex = list.buttons.findIndex(btn => btn.id === draggedId)
+        const targetIndex = list.buttons.findIndex(btn => btn.id === targetButton.id)
+        if (draggedIndex === -1 || targetIndex === -1) {
+            this.onButtonDragEnd()
+            return
+        }
+
+        const targetElement = event.currentTarget as HTMLElement | null
+        const targetRect = targetElement?.getBoundingClientRect()
+        const shouldPlaceAfter = targetRect ? event.clientX > targetRect.left + targetRect.width / 2 : draggedIndex < targetIndex
+        let insertIndex = targetIndex + (shouldPlaceAfter ? 1 : 0)
+
+        const [draggedButton] = list.buttons.splice(draggedIndex, 1)
+        if (draggedIndex < insertIndex) {
+            insertIndex -= 1
+        }
+        list.buttons.splice(insertIndex, 0, draggedButton)
+
+        this.saveLists()
+        this.onButtonDragEnd()
+    }
+
+    onButtonDragEnd(): void {
+        this.draggingButtonId = null
+        this.dragOverButtonId = null
+        setTimeout(() => {
+            this.suppressNextClick = false
+        }, 250)
     }
 
     // List menu

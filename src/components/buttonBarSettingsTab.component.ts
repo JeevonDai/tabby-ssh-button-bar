@@ -19,21 +19,6 @@ import { DEFAULT_BUTTON_BAR_CONFIG, getButtonBarConfig } from '../pluginConfig'
 
         <div class="form-line">
             <div class="header">
-                <div class="title">Command label max length</div>
-                <div class="description">Long command labels are shortened in the button bar.</div>
-            </div>
-            <input
-                class="form-control"
-                type="number"
-                min="1"
-                max="120"
-                [(ngModel)]="buttonBarConfig.commandLabelMaxLength"
-                (ngModelChange)="save()"
-            >
-        </div>
-
-        <div class="form-line">
-            <div class="header">
                 <div class="title">Default Send Enter after command</div>
                 <div class="description">New commands and commands without an explicit value send Enter automatically.</div>
             </div>

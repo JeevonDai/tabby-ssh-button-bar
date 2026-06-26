@@ -14,7 +14,7 @@ export const DEFAULT_BUTTON_BAR_CONFIG: ButtonBarConfig = {
     lists: [],
     activeListId: '',
     useCommandAsLabel: true,
-    commandLabelMaxLength: 24,
+    commandLabelMaxLength: 20,
     defaultSendEnter: true,
 }
 

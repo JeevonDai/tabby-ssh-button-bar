@@ -10,14 +10,15 @@ A Tabby Terminal plugin that adds a customizable button bar for quick command ex
 - **Color Coding**: Assign colors to visually organize your commands
 - **Icons**: Add FontAwesome icons to buttons
 - **Tooltips**: Add descriptions that show on hover
+- **Drag & Drop**: Reorder buttons directly in the button bar
 
 ### Command Options
 - **Send Enter**: Optionally send Enter key after command (configurable per button)
 - **Any Command**: Supports any text that can be typed in terminal
+- **Command Labels**: Use command text as the button label, shortened to a configurable length
 
 ### Organization
 - **Button Groups**: Organize commands into collapsible groups
-- **Drag & Drop**: Reorder buttons (coming soon)
 - **Import/Export**: Share button configurations (coming soon)
 
 ### User Interface
@@ -81,6 +82,11 @@ A Tabby Terminal plugin that adds a customizable button bar for quick command ex
 - **Edit**: Right-click a button → Edit
 - **Duplicate**: Right-click a button → Duplicate
 - **Delete**: Right-click a button → Delete
+- **Reorder**: Drag a button and drop it before or after another button
+
+### Settings
+- Use Tabby Settings → Button Bar to toggle command labels and the default Send Enter behavior.
+- `pluginConfig.button-bar.commandLabelMaxLength` can be edited in the Tabby config file. The default is `20`.
 
 ### Showing/Hiding
 - Click the keyboard icon in the toolbar to toggle visibility

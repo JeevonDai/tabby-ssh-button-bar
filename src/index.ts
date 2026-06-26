@@ -24,7 +24,7 @@ export class ButtonBarConfigProvider extends ConfigProvider {
                 lists: [],
                 activeListId: '',
                 useCommandAsLabel: true,
-                commandLabelMaxLength: 24,
+                commandLabelMaxLength: 20,
                 defaultSendEnter: true,
             },
         },
