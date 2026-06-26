@@ -82,9 +82,7 @@ interface ButtonBarStorage {
                         </th>
                         <th translate>Command</th>
                         <th style="width: 110px;" translate>Send Enter</th>
-                        <th style="width: 100px;" translate>Icon</th>
-                        <th style="width: 92px;" translate>Color</th>
-                        <th translate>Tooltip</th>
+                        <th style="width: 44px;"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,13 +105,16 @@ interface ButtonBarStorage {
                             <input type="checkbox" class="form-check-input" [(ngModel)]="button.sendEnter" (ngModelChange)="saveLists()">
                         </td>
                         <td>
-                            <input class="form-control form-control-sm" [(ngModel)]="button.icon" (ngModelChange)="saveLists()">
-                        </td>
-                        <td>
-                            <input class="form-control form-control-sm" type="color" [(ngModel)]="button.color" (ngModelChange)="saveLists()">
-                        </td>
-                        <td>
-                            <input class="form-control form-control-sm" [(ngModel)]="button.tooltip" (ngModelChange)="saveLists()">
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-secondary appearance-btn"
+                                (click)="openAppearanceModal(button)"
+                                [title]="'Edit appearance' | translate"
+                                [style.--btn-preview-color]="button.color || '#4a4a4a'"
+                            >
+                                <i *ngIf="button.icon" class="fas" [ngClass]="'fa-' + button.icon"></i>
+                                <i *ngIf="!button.icon" class="fas fa-palette"></i>
+                            </button>
                         </td>
                     </tr>
                 </tbody>
@@ -123,13 +124,163 @@ interface ButtonBarStorage {
         <ng-template #noCommands>
             <p class="text-muted" translate>No command list found.</p>
         </ng-template>
+
+        <div class="modal-backdrop" *ngIf="appearanceModalVisible" (click)="closeAppearanceModal()"></div>
+        <div class="appearance-modal" *ngIf="appearanceModalVisible">
+            <div class="modal-header">
+                <h5 translate>Edit appearance</h5>
+                <button type="button" class="btn btn-link" (click)="closeAppearanceModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group mb-3">
+                    <label class="form-label" translate>Icon (FontAwesome name, optional)</label>
+                    <input type="text" class="form-control" [(ngModel)]="appearanceData.icon" [placeholder]="'e.g., folder, server, code' | translate">
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label" translate>Color (optional)</label>
+                    <div class="color-picker">
+                        <button *ngFor="let color of presetColors"
+                                type="button"
+                                class="color-option"
+                                [style.background]="color"
+                                [class.selected]="appearanceData.color === color"
+                                (click)="appearanceData.color = color">
+                        </button>
+                        <input type="color" [(ngModel)]="appearanceData.color" class="color-input">
+                    </div>
+                </div>
+                <div class="form-group mb-0">
+                    <label class="form-label" translate>Tooltip (optional)</label>
+                    <input type="text" class="form-control" [(ngModel)]="appearanceData.tooltip" [placeholder]="'Description shown on hover' | translate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="closeAppearanceModal()" translate>Cancel</button>
+                <button type="button" class="btn btn-primary" (click)="saveAppearanceModal()" translate>Save</button>
+            </div>
+        </div>
     `,
+    styles: [`
+        .appearance-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 28px;
+            padding: 0;
+            line-height: 1;
+            background: var(--btn-preview-color, #4a4a4a);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: var(--bs-body-color, #e0e0e0);
+        }
+
+        .appearance-btn i {
+            font-size: 11px;
+            line-height: 1;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+        }
+
+        .appearance-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bs-body-bg);
+            border: 1px solid var(--bs-border-color);
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 10001;
+            width: min(420px, 90vw);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+
+        .modal-body {
+            padding: 16px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 12px 16px;
+            border-top: 1px solid var(--bs-border-color);
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .color-picker {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .color-option.selected {
+            border-color: white;
+            box-shadow: 0 0 0 2px var(--bs-primary);
+        }
+
+        .color-input {
+            width: 28px;
+            height: 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 0;
+        }
+    `],
 })
 export class ButtonBarSettingsTabComponent {
     @HostBinding('class.content-box') true
 
     lists: ButtonList[] = []
     activeListId = ''
+    appearanceModalVisible = false
+    editingButton: ButtonCommand | null = null
+    appearanceData: { icon: string, color: string, tooltip: string } = {
+        icon: '',
+        color: '#4a4a4a',
+        tooltip: '',
+    }
+
+    presetColors = [
+        '#4a4a4a',
+        '#0d6efd',
+        '#198754',
+        '#dc3545',
+        '#ffc107',
+        '#0dcaf0',
+        '#6f42c1',
+        '#fd7e14',
+    ]
 
     constructor(
         public config: ConfigService,
@@ -150,6 +301,34 @@ export class ButtonBarSettingsTabComponent {
 
     get activeList(): ButtonList | undefined {
         return this.lists.find(list => list.id === this.activeListId) || this.lists[0]
+    }
+
+    openAppearanceModal(button: ButtonCommand): void {
+        this.editingButton = button
+        this.appearanceData = {
+            icon: button.icon || '',
+            color: button.color || this.presetColors[0],
+            tooltip: button.tooltip || '',
+        }
+        this.appearanceModalVisible = true
+    }
+
+    closeAppearanceModal(): void {
+        this.appearanceModalVisible = false
+        this.editingButton = null
+    }
+
+    saveAppearanceModal(): void {
+        if (!this.editingButton) {
+            return
+        }
+        const icon = this.appearanceData.icon.trim()
+        const tooltip = this.appearanceData.tooltip.trim()
+        this.editingButton.icon = icon || undefined
+        this.editingButton.color = this.appearanceData.color || undefined
+        this.editingButton.tooltip = tooltip || undefined
+        this.saveLists()
+        this.closeAppearanceModal()
     }
 
     saveSettings(): void {
