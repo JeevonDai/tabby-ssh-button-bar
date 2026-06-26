@@ -115,7 +115,7 @@ interface ButtonBarStorage {
             </div>
             <div class="modal-body">
                 <div class="form-group mb-3">
-                    <label class="form-label">Label</label>
+                    <label class="form-label">Label{{ buttonBarSettings.useCommandAsLabel ? ' (optional)' : '' }}</label>
                     <input type="text" class="form-control" [(ngModel)]="modalData.label" [placeholder]="buttonBarSettings.useCommandAsLabel ? 'Optional, command is used by default' : 'e.g., List Files'">
                 </div>
                 <div class="form-group mb-3">

@@ -85,8 +85,9 @@ A Tabby Terminal plugin that adds a customizable button bar for quick command ex
 - **Reorder**: Drag a button and drop it before or after another button
 
 ### Settings
-- Use Tabby Settings → Button Bar to toggle command labels and the default Send Enter behavior.
-- `pluginConfig.button-bar.commandLabelMaxLength` can be edited in the Tabby config file. The default is `20`.
+- Use Tabby Settings → Button Bar to toggle command labels, set command label length, and control the default Send Enter behavior.
+- The settings page also lets you select a list, edit commands, and move buttons up or down.
+- `pluginConfig.button-bar.commandLabelMaxLength` can also be edited in the Tabby config file. The default is `20`.
 
 ### Showing/Hiding
 - Click the keyboard icon in the toolbar to toggle visibility
