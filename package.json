@@ -37,6 +37,7 @@
     "@types/node": "^20.12.7",
     "rxjs": "7.8.1",
     "tabby-core": "1.0.197-nightly.1",
+    "tabby-settings": "1.0.197-nightly.1",
     "tabby-terminal": "1.0.197-nightly.1",
     "ts-loader": "^9.5.1",
     "typescript": "^5.4.5",
@@ -49,6 +50,7 @@
     "@angular/forms": "17.3.5",
     "rxjs": "7.8.1",
     "tabby-core": "1.0.197-nightly.1",
+    "tabby-settings": "1.0.197-nightly.1",
     "tabby-terminal": "1.0.197-nightly.1"
   }
 }

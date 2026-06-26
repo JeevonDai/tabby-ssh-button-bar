@@ -8,9 +8,12 @@ import {
     Command,
     CommandContext,
 } from 'tabby-core'
+import { SettingsTabProvider } from 'tabby-settings'
 
 import { ButtonBarComponent } from './components/buttonBar.component'
+import { ButtonBarSettingsTabComponent } from './components/buttonBarSettingsTab.component'
 import { ButtonBarService, BUTTON_BAR_TOGGLE_HOTKEY_ID } from './services/buttonBar.service'
+import { ButtonBarSettingsTabProvider } from './settings'
 
 @Injectable()
 export class ButtonBarConfigProvider extends ConfigProvider {
@@ -20,6 +23,9 @@ export class ButtonBarConfigProvider extends ConfigProvider {
                 barVisible: true,
                 lists: [],
                 activeListId: '',
+                useCommandAsLabel: true,
+                commandLabelMaxLength: 24,
+                defaultSendEnter: true,
             },
         },
         hotkeys: {
@@ -62,13 +68,14 @@ export class ButtonBarCommandProvider extends CommandProvider {
 
 @NgModule({
     imports: [CommonModule, FormsModule],
-    declarations: [ButtonBarComponent],
+    declarations: [ButtonBarComponent, ButtonBarSettingsTabComponent],
     exports: [ButtonBarComponent],
     providers: [
         ButtonBarService,
         { provide: ConfigProvider, useClass: ButtonBarConfigProvider, multi: true },
         { provide: HotkeyProvider, useClass: ButtonBarHotkeyProvider, multi: true },
         { provide: CommandProvider, useClass: ButtonBarCommandProvider, multi: true },
+        { provide: SettingsTabProvider, useClass: ButtonBarSettingsTabProvider, multi: true },
     ],
 })
 export default class ButtonBarPluginModule {

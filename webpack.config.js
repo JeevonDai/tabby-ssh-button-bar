@@ -25,6 +25,7 @@ module.exports = {
   },
   externals: [
     'tabby-core',
+    'tabby-settings',
     'tabby-terminal',
     '@angular/core',
     '@angular/common',

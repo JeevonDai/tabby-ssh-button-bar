@@ -14,11 +14,11 @@ import path from 'node:path'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { Subject } from 'rxjs'
 import { takeUntil } from 'rxjs/operators'
-import { getButtonBarConfig } from '../pluginConfig'
+import { ButtonBarConfig, getButtonBarConfig, getButtonBarConfigValue } from '../pluginConfig'
 
 export interface ButtonCommand {
     id: string
-    label: string
+    label?: string
     command: string
     color?: string
     icon?: string
@@ -83,7 +83,7 @@ interface ButtonBarStorage {
                                 (mouseup)="$event.preventDefault()"
                                 (contextmenu)="onButtonContextMenu($event, btn)">
                             <i *ngIf="btn.icon" class="fas" [ngClass]="'fa-' + btn.icon"></i>
-                            <span>{{ btn.label }}</span>
+                            <span>{{ getButtonLabel(btn) }}</span>
                         </button>
                     </ng-container>
                     <button class="cmd-btn cmd-btn-add" (click)="openAddModal()" title="Add command">
@@ -110,7 +110,7 @@ interface ButtonBarStorage {
             <div class="modal-body">
                 <div class="form-group mb-3">
                     <label class="form-label">Label</label>
-                    <input type="text" class="form-control" [(ngModel)]="modalData.label" placeholder="e.g., List Files">
+                    <input type="text" class="form-control" [(ngModel)]="modalData.label" [placeholder]="buttonBarSettings.useCommandAsLabel ? 'Optional, command is used by default' : 'e.g., List Files'">
                 </div>
                 <div class="form-group mb-3">
                     <label class="form-label">Command</label>
@@ -143,7 +143,7 @@ interface ButtonBarStorage {
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" (click)="closeModal()">Cancel</button>
-                <button class="btn btn-primary" (click)="saveButton()" [disabled]="!modalData.label || !modalData.command">
+                <button class="btn btn-primary" (click)="saveButton()" [disabled]="!canSaveButton">
                     {{ editingButton ? 'Save' : 'Add' }}
                 </button>
             </div>
@@ -651,6 +651,14 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
         return this.lists.find(l => l.id === this.activeListId) || this.lists[0]
     }
 
+    get buttonBarSettings(): ButtonBarConfig {
+        return getButtonBarConfigValue(this.config)
+    }
+
+    get canSaveButton(): boolean {
+        return !!this.modalData.command?.trim() && (this.buttonBarSettings.useCommandAsLabel || !!this.modalData.label?.trim())
+    }
+
     presetColors = [
         '#4a4a4a',
         '#0d6efd',
@@ -906,14 +914,15 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
         setTimeout(() => {
             focusTerminal()
             const sanitizedCommand = btn.command.replace(/\r?\n/g, ' ')
+            const sendEnter = btn.sendEnter ?? this.buttonBarSettings.defaultSendEnter
             if (terminalAny.inputProcessor?.writeText) {
                 terminalAny.inputProcessor.writeText(sanitizedCommand)
-                if (btn.sendEnter === true) {
+                if (sendEnter) {
                     terminalAny.sendInput('\n')
                 }
             } else if (terminalAny.sendInput) {
                 let command = sanitizedCommand
-                if (btn.sendEnter === true) {
+                if (sendEnter) {
                     command += '\n'
                 }
                 terminalAny.sendInput(command)
@@ -1084,7 +1093,7 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
             icon: '',
             color: this.presetColors[0],
             tooltip: '',
-            sendEnter: false,
+            sendEnter: this.buttonBarSettings.defaultSendEnter,
         }
         this.modalVisible = true
     }
@@ -1102,25 +1111,26 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
     }
 
     saveButton(): void {
-        if (!this.modalData.label || !this.modalData.command) return
+        if (!this.canSaveButton) return
 
         const list = this.activeList
         if (!list) return
+        const commandText = this.modalData.command!.replace(/\r?\n/g, ' ')
+        const labelText = this.modalData.label?.trim() || commandText
 
         if (this.editingButton) {
             Object.assign(this.editingButton, {
-                label: this.modalData.label,
-                command: this.modalData.command?.replace(/\r?\n/g, ' '),
+                label: labelText,
+                command: commandText,
                 icon: this.modalData.icon || undefined,
                 color: this.modalData.color || undefined,
                 tooltip: this.modalData.tooltip || undefined,
                 sendEnter: this.modalData.sendEnter,
             })
         } else {
-            const commandText = this.modalData.command!.replace(/\\r?\\n/g, ' ')
             const newButton: ButtonCommand = {
                 id: this.generateId(),
-                label: this.modalData.label!,
+                label: labelText,
                 command: commandText,
                 icon: this.modalData.icon || undefined,
                 color: this.modalData.color || undefined,
@@ -1132,6 +1142,24 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
 
         this.saveLists()
         this.closeModal()
+    }
+
+    getButtonLabel(btn: ButtonCommand): string {
+        const settings = this.buttonBarSettings
+        const source = settings.useCommandAsLabel ? btn.command : (btn.label || btn.command)
+        return this.truncateLabel(source, settings.commandLabelMaxLength)
+    }
+
+    private truncateLabel(value: string, maxLength: number): string {
+        const normalized = (value || '').replace(/\s+/g, ' ').trim()
+        const limit = Math.max(1, Math.floor(Number(maxLength) || 1))
+        if (normalized.length <= limit) {
+            return normalized
+        }
+        if (limit <= 1) {
+            return '…'
+        }
+        return normalized.slice(0, limit - 1) + '…'
     }
 
     // Context menu
