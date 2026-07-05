@@ -80,7 +80,7 @@ interface ButtonBarStorage {
                                 tabindex="-1"
                                 [class.dragging]="draggingButtonId === btn.id"
                                 [class.drag-over]="dragOverButtonId === btn.id"
-                                [style.--btn-color]="btn.color || '#4a4a4a'"
+                                [style.--btn-color]="getButtonColor(btn)"
                                 [title]="btn.tooltip || btn.command"
                                 (click)="executeCommand(btn, $event)"
                                 (dragstart)="onButtonDragStart($event, btn)"
@@ -417,8 +417,8 @@ interface ButtonBarStorage {
             font-size: 11px;
             font-weight: 500;
             color: var(--bs-body-color, #e0e0e0);
-            background: var(--btn-color, #4a4a4a);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--btn-color, var(--bs-secondary-bg, #4a4a4a));
+            border: 1px solid var(--bs-border-color, #555);
             border-radius: 4px;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -433,7 +433,7 @@ interface ButtonBarStorage {
 
         .cmd-btn:hover {
             filter: brightness(1.15);
-            border-color: rgba(255,255,255,0.2);
+            border-color: var(--bs-secondary-color, #888);
         }
 
         .cmd-btn.dragging {
@@ -682,6 +682,15 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
 
     get canSaveButton(): boolean {
         return !!this.modalData.command?.trim() && (this.buttonBarSettings.useCommandAsLabel || !!this.modalData.label?.trim())
+    }
+
+    getButtonColor(btn: ButtonCommand): string {
+        // Older versions persisted the dark-theme default as an explicit color.
+        // Treat it as the default so existing buttons also follow theme changes.
+        if (!btn.color || btn.color.toLowerCase() === '#4a4a4a') {
+            return 'var(--bs-secondary-bg, #4a4a4a)'
+        }
+        return btn.color
     }
 
     presetColors = [
@@ -1189,7 +1198,7 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
             label: '',
             command: '',
             icon: '',
-            color: this.presetColors[0],
+            color: undefined,
             tooltip: '',
             sendEnter: this.buttonBarSettings.defaultSendEnter,
         }

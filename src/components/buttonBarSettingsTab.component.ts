@@ -110,7 +110,7 @@ interface ButtonBarStorage {
                                 class="btn btn-sm btn-secondary appearance-btn"
                                 (click)="openAppearanceModal(button)"
                                 [title]="'Edit appearance' | translate"
-                                [style.--btn-preview-color]="button.color || '#4a4a4a'"
+                                [style.--btn-preview-color]="getButtonColor(button)"
                             >
                                 <i *ngIf="button.icon" class="fas" [ngClass]="'fa-' + button.icon"></i>
                                 <i *ngIf="!button.icon" class="fas fa-palette"></i>
@@ -171,8 +171,8 @@ interface ButtonBarStorage {
             height: 28px;
             padding: 0;
             line-height: 1;
-            background: var(--btn-preview-color, #4a4a4a);
-            border-color: rgba(255, 255, 255, 0.15);
+            background: var(--btn-preview-color, var(--bs-secondary-bg, #4a4a4a));
+            border-color: var(--bs-border-color, #555);
             color: var(--bs-body-color, #e0e0e0);
         }
 
@@ -301,6 +301,13 @@ export class ButtonBarSettingsTabComponent {
 
     get activeList(): ButtonList | undefined {
         return this.lists.find(list => list.id === this.activeListId) || this.lists[0]
+    }
+
+    getButtonColor(button: ButtonCommand): string {
+        if (!button.color || button.color.toLowerCase() === '#4a4a4a') {
+            return 'var(--bs-secondary-bg, #4a4a4a)'
+        }
+        return button.color
     }
 
     openAppearanceModal(button: ButtonCommand): void {
