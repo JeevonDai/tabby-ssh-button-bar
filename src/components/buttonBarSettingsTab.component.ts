@@ -78,7 +78,7 @@ interface ButtonBarStorage {
                     <tr>
                         <th style="width: 86px;" translate>Order</th>
                         <th>
-                            <span translate>Label</span><span *ngIf="buttonBarConfig.useCommandAsLabel" translate> (optional)</span>
+                            {{ (buttonBarConfig.useCommandAsLabel ? 'Label (optional)' : 'Label') | translate }}
                         </th>
                         <th translate>Command</th>
                         <th style="width: 110px;" translate>Send Enter</th>

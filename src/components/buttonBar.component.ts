@@ -116,9 +116,7 @@ interface ButtonBarStorage {
             </div>
             <div class="modal-body">
                 <div class="form-group mb-3">
-                    <label class="form-label">
-                        <span translate>Label</span><span *ngIf="buttonBarSettings.useCommandAsLabel" translate> (optional)</span>
-                    </label>
+                    <label class="form-label">{{ (buttonBarSettings.useCommandAsLabel ? 'Label (optional)' : 'Label') | translate }}</label>
                     <input type="text" class="form-control" [(ngModel)]="modalData.label" [placeholder]="(buttonBarSettings.useCommandAsLabel ? 'Optional, command is used by default' : 'e.g., List Files') | translate">
                 </div>
                 <div class="form-group mb-3">
@@ -1253,7 +1251,7 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
 
     getButtonLabel(btn: ButtonCommand): string {
         const settings = this.buttonBarSettings
-        const source = settings.useCommandAsLabel ? btn.command : (btn.label || btn.command)
+        const source = btn.label?.trim() || btn.command
         return this.truncateLabel(source, settings.commandLabelMaxLength)
     }
 
