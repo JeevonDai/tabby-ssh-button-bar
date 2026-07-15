@@ -955,12 +955,12 @@ export class ButtonBarComponent extends BaseComponent implements OnInit, OnDestr
             if (terminalAny.inputProcessor?.writeText) {
                 terminalAny.inputProcessor.writeText(sanitizedCommand)
                 if (sendEnter) {
-                    terminalAny.sendInput('\n')
+                    terminalAny.sendInput('\r')
                 }
             } else if (terminalAny.sendInput) {
                 let command = sanitizedCommand
                 if (sendEnter) {
-                    command += '\n'
+                    command += '\r'
                 }
                 terminalAny.sendInput(command)
             }
